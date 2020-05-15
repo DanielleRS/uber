@@ -77,6 +77,8 @@ class _RegisterState extends State<Register> {
           );
           break;
       }
+    }).catchError((error){
+      _messageError = "Erro ao autenticar usuário. Verifique os campos e tente novamente.";
     });
   }
 

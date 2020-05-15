@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:uber/screens/Register.dart';
+import 'package:uber/model/User.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -8,8 +9,46 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
 
-  TextEditingController _controllerEmail = TextEditingController();
-  TextEditingController _controllerPass = TextEditingController();
+  TextEditingController _controllerEmail = TextEditingController(text: "daniellerodris@gmail.com");
+  TextEditingController _controllerPass = TextEditingController(text: "1234567");
+
+  String _messageError = "";
+
+  _validateFields(){
+    String email = _controllerEmail.text;
+    String pass = _controllerPass.text;
+
+    if(email.isNotEmpty && email.contains("@")){
+      if(pass.isNotEmpty && pass.length > 6){
+        User user = User();
+        user.email = email;
+        user.pass = pass;
+
+        _loginUser(user);
+      } else {
+        setState(() {
+          _messageError = "Insira uma senha com mais de 6 caracteres.";
+        });
+      }
+    } else {
+      setState(() {
+        _messageError = "Insira um e-mail válido.";
+      });
+    }
+  }
+
+  _loginUser(User user){
+    FirebaseAuth auth = FirebaseAuth.instance;
+
+    auth.signInWithEmailAndPassword(
+        email: user.email,
+        password: user.pass
+    ).then((firebaseUser){
+      Navigator.pushReplacementNamed(context, "/passenger-panel");
+    }).catchError((error){
+      _messageError = "Erro ao autenticar usuário. Verifique e-mail e senha e tente novamente.";
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +114,7 @@ class _HomeState extends State<Home> {
                       color: Color(0xff1ebbd8),
                       padding: EdgeInsets.fromLTRB(32, 16, 32, 16),
                       onPressed: (){
-
+                        _validateFields();
                       }
                   ),
                 ),
@@ -94,7 +133,7 @@ class _HomeState extends State<Home> {
                   padding: EdgeInsets.only(top: 16),
                   child: Center(
                     child: Text(
-                      "Erro",
+                      _messageError,
                       style: TextStyle(color: Colors.red, fontSize: 20),
                     ),
                   ),
