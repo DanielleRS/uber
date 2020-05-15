@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:uber/model/User.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Register extends StatefulWidget {
   @override
@@ -7,11 +10,75 @@ class Register extends StatefulWidget {
 
 class _RegisterState extends State<Register> {
 
-  TextEditingController _controllerName = TextEditingController();
-  TextEditingController _controllerEmail = TextEditingController();
-  TextEditingController _controllerPass = TextEditingController();
+  TextEditingController _controllerName = TextEditingController(text: "Danielle Santos");
+  TextEditingController _controllerEmail = TextEditingController(text: "daniellerodris@gmail.com");
+  TextEditingController _controllerPass = TextEditingController(text: "1234567");
 
-  bool _typePassengerUser = false;
+  bool _typeUser = false;
+  String _messageError = "";
+
+  _validateFields(){
+    String name = _controllerName.text;
+    String email = _controllerEmail.text;
+    String pass = _controllerPass.text;
+
+    if(name.isNotEmpty){
+      if(email.isNotEmpty && email.contains("@")){
+        if(pass.isNotEmpty && pass.length > 6){
+          User user = User();
+          user.name = name;
+          user.email = email;
+          user.pass = pass;
+          user.typeUser = user.checkUserType(_typeUser);
+
+          _registerUser(user);
+        } else {
+          setState(() {
+            _messageError = "Insira uma senha com mais de 6 caracteres.";
+          });
+        }
+      } else {
+        setState(() {
+          _messageError = "Insira um e-mail válido.";
+        });
+      }
+    } else {
+      setState(() {
+        _messageError = "Insira o nome";
+      });
+    }
+  }
+
+  _registerUser(User user){
+    FirebaseAuth auth = FirebaseAuth.instance;
+    Firestore db = Firestore.instance;
+
+    auth.createUserWithEmailAndPassword(
+        email: user.email,
+        password: user.pass
+    ).then((firebaseUser){
+      db.collection("users")
+          .document(firebaseUser.user.uid)
+          .setData(user.toMap());
+
+      switch(user.typeUser){
+        case "driver":
+          Navigator.pushNamedAndRemoveUntil(
+              context,
+              "/driver-panel",
+                  (_) => false
+          );
+          break;
+        case "passenger":
+          Navigator.pushNamedAndRemoveUntil(
+              context,
+              "/passenger-panel",
+                  (_) => false
+          );
+          break;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,10 +143,10 @@ class _RegisterState extends State<Register> {
                     children: <Widget>[
                       Text("Passageiro"),
                       Switch(
-                        value: _typePassengerUser,
+                        value: _typeUser,
                         onChanged: (bool value){
                           setState(() {
-                            _typePassengerUser = value;
+                            _typeUser = value;
                           });
                         },
                       ),
@@ -97,7 +164,7 @@ class _RegisterState extends State<Register> {
                       color: Color(0xff1ebbd8),
                       padding: EdgeInsets.fromLTRB(32, 16, 32, 16),
                       onPressed: (){
-
+                        _validateFields();
                       }
                   ),
                 ),
@@ -105,7 +172,7 @@ class _RegisterState extends State<Register> {
                   padding: EdgeInsets.only(top: 16),
                   child: Center(
                     child: Text(
-                      "Erro",
+                      _messageError,
                       style: TextStyle(color: Colors.red, fontSize: 20),
                     ),
                   ),
