@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 
 class PassengerPanel extends StatefulWidget {
@@ -14,6 +15,9 @@ class _PassengerPanelState extends State<PassengerPanel> {
     "Configurations", "LogOut"
   ];
   Completer<GoogleMapController> _controller = Completer();
+  CameraPosition _cameraPosition = CameraPosition(
+      target: LatLng(-23.566493, -46.650274)
+  );
 
   _logOutUser() async {
     FirebaseAuth auth = FirebaseAuth.instance;
@@ -34,6 +38,54 @@ class _PassengerPanelState extends State<PassengerPanel> {
 
   _onMapCreated(GoogleMapController controller){
     _controller.complete(controller);
+  }
+
+  _addListenerLocation(){
+    var geolocator = Geolocator();
+    var locationOptions = LocationOptions(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 10
+    );
+
+    geolocator.getPositionStream(locationOptions).listen((Position position) {
+      _cameraPosition = CameraPosition(
+          target: LatLng(position.latitude, position.longitude),
+          zoom: 19
+      );
+
+      _moveCamera(_cameraPosition);
+    });
+  }
+
+  _retrievesLastKnownLocation() async {
+    Position position = await Geolocator().getLastKnownPosition(desiredAccuracy: LocationAccuracy.high);
+
+    setState(() {
+      if(position != null){
+        _cameraPosition = CameraPosition(
+            target: LatLng(position.latitude, position.longitude),
+          zoom: 19
+        );
+
+        _moveCamera(_cameraPosition);
+      }
+    });
+  }
+
+  _moveCamera(CameraPosition cameraPosition) async {
+    GoogleMapController googleMapController = await _controller.future;
+    googleMapController.animateCamera(
+      CameraUpdate.newCameraPosition(
+        cameraPosition
+      )
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _retrievesLastKnownLocation();
+    _addListenerLocation();
   }
 
   @override
@@ -58,11 +110,9 @@ class _PassengerPanelState extends State<PassengerPanel> {
       body: Container(
         child: GoogleMap(
           mapType: MapType.normal,
-            initialCameraPosition: CameraPosition(
-                target: LatLng(-23.566493, -46.650274),
-              zoom: 16
-            ),
+            initialCameraPosition: _cameraPosition,
           onMapCreated: _onMapCreated,
+          myLocationEnabled: true,
         ),
       ),
     );
