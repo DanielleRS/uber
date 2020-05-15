@@ -86,12 +86,7 @@ class _HomeState extends State<Home> {
                       style: TextStyle(color: Colors.white),
                     ),
                     onTap: (){
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => Register()
-                          )
-                      );
+                      Navigator.pushNamed(context, "/register");
                     },
                   ),
                 ),

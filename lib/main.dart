@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uber/screens/Home.dart';
+import 'package:uber/Routes.dart';
 
 final ThemeData standardTheme = ThemeData(
   primaryColor: Color(0xff37474f),
@@ -11,6 +12,8 @@ void main() {
     title: "Uber",
     home: Home(),
     theme: standardTheme,
+    initialRoute: "/",
+    onGenerateRoute: Routes.generateRoutes,
     debugShowCheckedModeBanner: false,
   ));
 }
