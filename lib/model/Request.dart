@@ -1,5 +1,6 @@
 import 'Destiny.dart';
 import 'User.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Request {
   String _id;
@@ -8,7 +9,12 @@ class Request {
   User _driver;
   Destiny _destiny;
 
-  Request();
+  Request(){
+    Firestore db = Firestore.instance;
+
+    DocumentReference ref = db.collection("requests").document();
+    this.id = ref.documentID;
+  }
 
   Map<String, dynamic> toMap(){
     Map<String, dynamic> passengerData = {
@@ -28,6 +34,7 @@ class Request {
     };
 
     Map<String, dynamic> requestData = {
+      "id": this.id,
       "status": this.status,
       "passenger": passengerData,
       "driver": null,

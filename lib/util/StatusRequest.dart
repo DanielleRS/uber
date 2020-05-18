@@ -1,6 +1,6 @@
 class StatusRequest {
-  static final String WAITING = "waiting";
-  static final String ON_COURSE = "on_course";
-  static final String TRIP = "trip";
-  static final String FINISHED = "finished";
+  static const String WAITING = "waiting";
+  static const String ON_COURSE = "on_course";
+  static const String TRIP = "trip";
+  static const String FINISHED = "finished";
 }

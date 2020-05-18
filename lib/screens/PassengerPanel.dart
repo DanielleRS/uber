@@ -185,9 +185,17 @@ class _PassengerPanelState extends State<PassengerPanel> {
 
     Firestore db = Firestore.instance;
     db.collection("requests")
-      .add(request.toMap());
+      .document(request.id)
+      .setData(request.toMap());
 
-    _statusWaiting();
+    Map<String, dynamic> activeDataRequest = {};
+    activeDataRequest["id_request"] = request.id;
+    activeDataRequest["id_user"] = passenger.idUser;
+    activeDataRequest["status"] = StatusRequest.WAITING;
+
+    db.collection("active_request")
+    .document(passenger.idUser)
+    .setData(activeDataRequest);
   }
 
   _changeMainButton(String text, Color color, Function function){
@@ -224,12 +232,42 @@ class _PassengerPanelState extends State<PassengerPanel> {
 
   }
 
+  _addListenerActiveRequest() async {
+    FirebaseUser firebaseUser = await UserFirebase.getCurrentUser();
+
+    Firestore db = Firestore.instance;
+    await db.collection("active_request")
+      .document(firebaseUser.uid)
+      .snapshots()
+      .listen((snapshot){
+        if(snapshot.data != null){
+          Map<String, dynamic> data = snapshot.data;
+          String status = data["status"];
+          String idRequest = data["id_request"];
+          switch(status){
+            case StatusRequest.WAITING:
+              _statusWaiting();
+              break;
+            case StatusRequest.ON_COURSE:
+              break;
+            case StatusRequest.TRIP:
+              break;
+            case StatusRequest.FINISHED:
+              break;
+          }
+        } else {
+          _statusUberNotCalled();
+        }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _retrievesLastKnownLocation();
     _addListenerLocation();
-    _statusUberNotCalled();
+
+    _addListenerActiveRequest();
   }
 
   @override
