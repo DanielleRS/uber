@@ -5,6 +5,9 @@ class User {
   String _pass;
   String _typeUser;
 
+  double _latitude;
+  double _longitude;
+
   User();
 
   Map<String, dynamic> toMap(){
@@ -12,9 +15,17 @@ class User {
       "name": this.name,
       "email": this.email,
       "typeUser": this.typeUser,
+      "latitude": this.latitude,
+      "longitude": this.longitude,
     };
 
     return map;
+  }
+
+  double get latitude => _latitude;
+
+  set latitude(double value) {
+    _latitude = value;
   }
 
   String checkUserType(bool typeUser){
@@ -49,6 +60,12 @@ class User {
 
   set idUser(String value) {
     _idUser = value;
+  }
+
+  double get longitude => _longitude;
+
+  set longitude(double value) {
+    _longitude = value;
   }
 
 

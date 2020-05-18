@@ -7,6 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:uber/util/StatusRequest.dart';
+import 'package:uber/util/UserFirebase.dart';
+import 'package:uber/model/User.dart';
 
 class Race extends StatefulWidget {
 
@@ -23,8 +25,9 @@ class _RaceState extends State<Race> {
   CameraPosition _cameraPosition = CameraPosition(
       target: LatLng(-23.566493, -46.650274)
   );
-
   Set<Marker> _markers = {};
+  Map<String, dynamic> _dataRequest;
+  Position _localDriver;
 
   String _textButton = "Aceitar corrida";
   Color _colorButton = Color(0xff1ebbd8);
@@ -59,6 +62,10 @@ class _RaceState extends State<Race> {
       );
 
       _moveCamera(_cameraPosition);
+
+      setState(() {
+        _localDriver = position;
+      });
     });
   }
 
@@ -74,6 +81,7 @@ class _RaceState extends State<Race> {
         );
 
         _moveCamera(_cameraPosition);
+        _localDriver = position;
       }
     });
   }
@@ -109,12 +117,100 @@ class _RaceState extends State<Race> {
     });
   }
 
+  _recoverRequest() async {
+    String idRequest = widget.idRequest;
+
+    Firestore db = Firestore.instance;
+    DocumentSnapshot documentSnapshot = await db
+      .collection("requests")
+      .document(idRequest)
+      .get();
+
+    _dataRequest = documentSnapshot.data;
+    _addListenerRequest();
+  }
+
+  _addListenerRequest() async {
+    Firestore db = Firestore.instance;
+    String idRquest = _dataRequest["id"];
+    await db.collection("requests")
+      .document(idRquest).snapshots().listen((snapshot){
+       if(snapshot.data != null){
+         Map<String, dynamic> data = snapshot.data;
+         String status = data["status"];
+
+         switch(status){
+           case StatusRequest.WAITING:
+             _statusWaiting();
+             break;
+           case StatusRequest.ON_COURSE:
+             _statusOnCourse();
+             break;
+           case StatusRequest.TRIP:
+             break;
+           case StatusRequest.FINISHED:
+             break;
+         }
+       }
+    });
+  }
+
+  _statusWaiting(){
+    _changeMainButton(
+        "Aceitar corrida",
+        Color(0xff1ebbd8),
+            (){
+          _acceptRace();
+        }
+    );
+  }
+
+  _statusOnCourse(){
+    _changeMainButton(
+        "A caminho do passageiro",
+        Colors.grey,
+        null
+    );
+  }
+
+  _acceptRace() async {
+    User driver = await UserFirebase.dataLoggedUser();
+    driver.latitude = _localDriver.latitude;
+    driver.longitude = _localDriver.longitude;
+
+    Firestore db = Firestore.instance;
+    String idRequest = _dataRequest["id"];
+
+    db.collection("requests")
+      .document(idRequest).updateData({
+      "driver": driver.toMap(),
+      "status": StatusRequest.ON_COURSE,
+    }).then((_){
+      String idPassegner = _dataRequest["passenger"]["idUser"];
+      db.collection("active_request")
+        .document(idPassegner).updateData({
+        "status": StatusRequest.ON_COURSE,
+      });
+
+      String idDriver = driver.idUser;
+      db.collection("active_request_driver")
+          .document(idDriver)
+          .setData({
+        "id_request": idRequest,
+        "id_user": idDriver,
+        "status": StatusRequest.ON_COURSE,
+      });
+    });
+  }
+
   @override
   void initState() {
     super.initState();
 
     _retrievesLastKnownLocation();
     _addListenerLocation();
+
+    _recoverRequest();
   }
 
   @override
