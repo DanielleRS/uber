@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:uber/model/Destiny.dart';
+import 'package:uber/model/Request.dart';
+import 'package:uber/model/User.dart';
+import 'package:uber/util/StatusRequest.dart';
+import 'package:uber/util/UserFirebase.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -152,7 +157,7 @@ class _PassengerPanelState extends State<PassengerPanel> {
                   FlatButton(
                     child: Text("Confirmar", style: TextStyle(color: Colors.green),),
                     onPressed: (){
-                      //_saveRequest();
+                      _saveRequest(destiny);
                       Navigator.pop(context);
                     },
                   )
@@ -162,6 +167,20 @@ class _PassengerPanelState extends State<PassengerPanel> {
         );
       }
     }
+  }
+
+  _saveRequest(Destiny destiny) async {
+
+    User passenger = await UserFirebase.dataLoggedUser();
+
+    Request request = Request();
+    request.destiny = destiny;
+    request.passenger = passenger;
+    request.status = StatusRequest.WAITING;
+
+    Firestore db = Firestore.instance;
+    db.collection("requests")
+      .add(request.toMap());
   }
 
   @override
