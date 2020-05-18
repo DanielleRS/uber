@@ -20,6 +20,8 @@ class _PassengerPanelState extends State<PassengerPanel> {
       target: LatLng(-23.566493, -46.650274)
   );
 
+  Set<Marker> _markers = {};
+
   _logOutUser() async {
     FirebaseAuth auth = FirebaseAuth.instance;
 
@@ -49,6 +51,9 @@ class _PassengerPanelState extends State<PassengerPanel> {
     );
 
     geolocator.getPositionStream(locationOptions).listen((Position position) {
+
+      _displayPassengerMarker(position);
+
       _cameraPosition = CameraPosition(
           target: LatLng(position.latitude, position.longitude),
           zoom: 19
@@ -63,6 +68,7 @@ class _PassengerPanelState extends State<PassengerPanel> {
 
     setState(() {
       if(position != null){
+        _displayPassengerMarker(position);
         _cameraPosition = CameraPosition(
             target: LatLng(position.latitude, position.longitude),
           zoom: 19
@@ -80,6 +86,28 @@ class _PassengerPanelState extends State<PassengerPanel> {
         cameraPosition
       )
     );
+  }
+
+  _displayPassengerMarker(Position local) async {
+
+    double pixelRatio = MediaQuery.of(context).devicePixelRatio;
+
+    BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(devicePixelRatio: pixelRatio),
+        "images/passageiro.png"
+    ).then((BitmapDescriptor icon){
+      Marker passengerMarker = Marker(
+          markerId: MarkerId("marker-passenger"),
+          position: LatLng(local.latitude, local.longitude),
+          infoWindow: InfoWindow(
+              title: "Meu local"
+          ),
+          icon: icon
+      );
+      setState(() {
+        _markers.add(passengerMarker);
+      });
+    });
   }
 
   @override
@@ -115,8 +143,9 @@ class _PassengerPanelState extends State<PassengerPanel> {
               mapType: MapType.normal,
               initialCameraPosition: _cameraPosition,
               onMapCreated: _onMapCreated,
-              myLocationEnabled: true,
+              //myLocationEnabled: true,
               myLocationButtonEnabled: false,
+              markers: _markers,
             ),
             Positioned(
               top: 0,
