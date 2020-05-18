@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:uber/screens/Home.dart';
+import 'package:uber/screens/Race.dart';
 import 'package:uber/screens/Register.dart';
 import 'package:uber/screens/PassengerPanel.dart';
 import 'package:uber/screens/DriverPanel.dart';
 
 class Routes {
   static Route<dynamic> generateRoutes(RouteSettings settings){
+
+    final args = settings.arguments;
+
     switch(settings.name){
       case "/":
         return MaterialPageRoute(
@@ -22,6 +26,10 @@ class Routes {
       case "/driver-panel":
         return MaterialPageRoute(
             builder: (_) => DriverPanel()
+        );
+      case "/race":
+        return MaterialPageRoute(
+            builder: (_) => Race(args)
         );
       default:
         _errorRoute();
