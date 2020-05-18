@@ -29,6 +29,7 @@ class _PassengerPanelState extends State<PassengerPanel> {
   );
 
   Set<Marker> _markers = {};
+  String _idRequest;
 
   bool _displayDestinationAddressBox = true;
   String _textButton = "Chamar uber";
@@ -228,8 +229,18 @@ class _PassengerPanelState extends State<PassengerPanel> {
     );
   }
 
-  _cancelUber(){
+  _cancelUber() async {
+    FirebaseUser firebaseUser = await UserFirebase.getCurrentUser();
 
+    Firestore db = Firestore.instance;
+    db.collection("requests")
+      .document(_idRequest).updateData({
+      "status": StatusRequest.CANCELED
+    }).then((_){
+      db.collection("active_request")
+          .document(firebaseUser.uid)
+          .delete();
+    });
   }
 
   _addListenerActiveRequest() async {
@@ -243,7 +254,7 @@ class _PassengerPanelState extends State<PassengerPanel> {
         if(snapshot.data != null){
           Map<String, dynamic> data = snapshot.data;
           String status = data["status"];
-          String idRequest = data["id_request"];
+          _idRequest = data["id_request"];
           switch(status){
             case StatusRequest.WAITING:
               _statusWaiting();
