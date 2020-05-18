@@ -229,6 +229,16 @@ class _PassengerPanelState extends State<PassengerPanel> {
     );
   }
 
+  _statusOnCourse(){
+    _displayDestinationAddressBox = false;
+    _changeMainButton(
+        "Motorista a caminho",
+        Colors.grey,
+            (){
+        }
+    );
+  }
+
   _cancelUber() async {
     FirebaseUser firebaseUser = await UserFirebase.getCurrentUser();
 
@@ -260,6 +270,7 @@ class _PassengerPanelState extends State<PassengerPanel> {
               _statusWaiting();
               break;
             case StatusRequest.ON_COURSE:
+              _statusOnCourse();
               break;
             case StatusRequest.TRIP:
               break;

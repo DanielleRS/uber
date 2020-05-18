@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uber/util/StatusRequest.dart';
+import 'package:uber/util/UserFirebase.dart';
 
 class DriverPanel extends StatefulWidget {
   @override
@@ -45,11 +46,32 @@ class _DriverPanelState extends State<DriverPanel> {
     });
   }
 
+
+  _retrieveActiveDriverRequest() async {
+    FirebaseUser firebaseUser = await UserFirebase.getCurrentUser();
+
+    DocumentSnapshot documentSnapshot = await db
+      .collection("active_request_driver")
+      .document(firebaseUser.uid).get();
+
+    var dataRequest = documentSnapshot.data;
+    if(dataRequest == null){
+      _addListenerRequests();
+    } else {
+      String idRequest = dataRequest["id_request"];
+      Navigator.pushReplacementNamed(
+          context,
+          "/race",
+          arguments: idRequest
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
 
-    _addListenerRequests();
+    _retrieveActiveDriverRequest();
   }
 
   @override
