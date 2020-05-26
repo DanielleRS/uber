@@ -30,6 +30,7 @@ class _PassengerPanelState extends State<PassengerPanel> {
 
   Set<Marker> _markers = {};
   String _idRequest;
+  Position _localPassenger;
 
   bool _displayDestinationAddressBox = true;
   String _textButton = "Chamar uber";
@@ -73,6 +74,7 @@ class _PassengerPanelState extends State<PassengerPanel> {
           zoom: 19
       );
 
+      _localPassenger = position;
       _moveCamera(_cameraPosition);
     });
   }
@@ -88,6 +90,7 @@ class _PassengerPanelState extends State<PassengerPanel> {
           zoom: 19
         );
 
+        _localPassenger = position;
         _moveCamera(_cameraPosition);
       }
     });
@@ -178,6 +181,8 @@ class _PassengerPanelState extends State<PassengerPanel> {
   _saveRequest(Destiny destiny) async {
 
     User passenger = await UserFirebase.dataLoggedUser();
+    passenger.latitude = _localPassenger.latitude;
+    passenger.longitude = _localPassenger.longitude;
 
     Request request = Request();
     request.destiny = destiny;

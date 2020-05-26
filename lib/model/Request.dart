@@ -21,7 +21,9 @@ class Request {
     "name": this.passenger.name,
     "email": this.passenger.email,
     "typeUser": this.passenger.typeUser,
-    "idUser": this.passenger.idUser
+    "idUser": this.passenger.idUser,
+    "latitude": this.passenger.latitude,
+    "longitude": this.passenger.longitude,
     };
 
     Map<String, dynamic> destinyData = {
