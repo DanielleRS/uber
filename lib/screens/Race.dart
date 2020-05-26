@@ -61,7 +61,7 @@ class _RaceState extends State<Race> {
           zoom: 19
       );
 
-      _moveCamera(_cameraPosition);
+      //_moveCamera(_cameraPosition);
 
       setState(() {
         _localDriver = position;
@@ -80,7 +80,7 @@ class _RaceState extends State<Race> {
             zoom: 19
         );
 
-        _moveCamera(_cameraPosition);
+        //_moveCamera(_cameraPosition);
         _localDriver = position;
       }
     });
@@ -182,6 +182,41 @@ class _RaceState extends State<Race> {
       LatLng(latitudeDriver, longitudeDriver),
       LatLng(latitudePassenger, longitudePassenger),
     );
+
+    var nLat, nLon, sLat, sLon;
+
+    if(latitudeDriver <= latitudePassenger) {
+      sLat = latitudeDriver;
+      nLat = latitudePassenger;
+    } else {
+      sLat = latitudePassenger;
+      nLat = latitudeDriver;
+    }
+
+    if(longitudeDriver <= longitudePassenger) {
+      sLon = longitudeDriver;
+      nLon = longitudePassenger;
+    } else {
+      sLon = longitudePassenger;
+      nLon = longitudeDriver;
+    }
+
+    _moveCameraBounds(
+      LatLngBounds(
+          northeast: LatLng(nLat, nLon),
+          southwest: LatLng(sLat, sLon)
+      )
+    );
+  }
+
+  _moveCameraBounds(LatLngBounds latLngBounds) async {
+    GoogleMapController googleMapController = await _controller.future;
+    googleMapController.animateCamera(
+        CameraUpdate.newLatLngBounds(
+            latLngBounds,
+            100
+        )
+    );
   }
 
   _displayTwoMarkers(LatLng latLngDriver, LatLng latLngPassenger){
@@ -220,10 +255,6 @@ class _RaceState extends State<Race> {
 
     setState(() {
       _markers = _listMarkers;
-      _moveCamera(CameraPosition(
-          target: LatLng(latLngDriver.latitude, latLngDriver.longitude),
-        zoom: 18
-      ));
     });
   }
 
